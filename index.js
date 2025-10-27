@@ -71,19 +71,16 @@ client.on("messageCreate", async (message) => {
   }
 
   try {
-    //const res = await fetch(`http://localhost:4000/music/${songId}`);
     const res = await fetch(`https://audioslave-l9ch.onrender.com/music/${songId}`);
     if (!res.ok) throw new Error("Song not found");
 
-    const arrayBuffer = await res.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const data = await res.json()
+    const audioRes = await fetch(data.url)
 
-    // decode buffer to PCM
-    const transcoded = decodeToPCM(buffer);
+    if (!audioRes) throw new Error('Failed to pull from S3')
 
-    // create audio resource
-    const resource = createAudioResource(transcoded, {
-      inputType: StreamType.Raw,
+    const resource = createAudioResource(audioRes.body, {
+      inputType: StreamType.Arbitrary,
     });
 
     // join voice channel
